@@ -2,12 +2,14 @@
 #define AMPQ_H
 
 #include <sys/types.h>
+#include "queue.h"
 
 //amqp*.stripped.xml
 #define FRAME_MIN_SIZE 4096
 #define FRAME_END 206
 #define REPLY_SUCCESS 200
 #define AMQP_DEFAULT_CHANNEL_HEARTBEAT 0
+#define MAXLINE 4096
 
 /*
  * 
@@ -167,6 +169,19 @@ General frame format
  octet   short     long  'size' octets    octet
 */
 
+
+/*
+ *
+ * Data structure to hold all info about connection state
+ *
+ * */
+typedef struct connection_state_t{
+  int connfd;
+  queue_t *binded_queue;
+  queues_handler_t *queues_handler;
+  char recvline[MAXLINE];
+  char sendline[MAXLINE];
+} connection_state;
 
 /*
 • Declaração da fila;
