@@ -17,10 +17,10 @@
  *
  * */
 enum class_type_t{
-  CONNECTION = 10,
-  CHANNEL    = 20,
-  QUEUE      = 50,
-  BASIC      = 60
+  CONNECTION = 0xa,
+  CHANNEL    = 0x32,
+  QUEUE      = 0x80,
+  BASIC      = 0x96
 };
 
 /*
@@ -29,30 +29,30 @@ enum class_type_t{
  *
  */
 enum method_type_t{
-  CONNECTION_START = 10,
-  CONNECTION_START_OK = 11,
-  CONNECTION_TUNE = 30,
-  CONNECTION_TUNE_OK = 31,
-  CONNECTION_OPEN = 40,
-  CONNECTION_OPEN_OK = 41,
-  CONNECTION_CLOSE = 50,
-  CONNECTION_CLOSE_OK = 51,
+  CONNECTION_START = 0xa,
+  CONNECTION_START_OK = 0xb,
+  CONNECTION_TUNE = 0x1e,
+  CONNECTION_TUNE_OK = 0x1f,
+  CONNECTION_OPEN = 0x28,
+  CONNECTION_OPEN_OK = 0x29,
+  CONNECTION_CLOSE = 0x32,
+  CONNECTION_CLOSE_OK = 0x33,
 
-  CHANNEL_OPEN = 10,
-  CHANNEL_OPEN_OK = 11,
-  CHANNEL_CLOSE = 40,
-  CHANNEL_CLOSE_OK = 41,
+  CHANNEL_OPEN = 0xa,
+  CHANNEL_OPEN_OK = 0xb,
+  CHANNEL_CLOSE = 0x28,
+  CHANNEL_CLOSE_OK = 0x29,
 
-  QUEUE_DECLARE = 10,
-  QUEUE_DECLARE_OK = 11,
+  QUEUE_DECLARE = 0xa,
+  QUEUE_DECLARE_OK = 0xb,
 
-  BASIC_PUBLISH = 40,
-  BASIC_ACK = 80,
-  BASIC_QOS = 10,
-  BASIC_QOS_OK = 11,
-  BASIC_CONSUME = 20,
-  BASIC_CONSUME_OK = 21,
-  BASIC_DELIVER = 60,
+  BASIC_PUBLISH = 0x28,
+  BASIC_ACK = 0x50,
+  BASIC_QOS = 0xa,
+  BASIC_QOS_OK = 0xb,
+  BASIC_CONSUME = 0x14,
+  BASIC_CONSUME_OK = 0x15,
+  BASIC_DELIVER = 0x3c,
 
 };
 
@@ -62,10 +62,11 @@ enum method_type_t{
  *
  * */
 enum frame_type_t{
-  METHOD    = 1, //frame_method
-  HEADER    = 2, //frame_header
-  BODY      = 3, //frame_contet
-  HEARTBEAT = 8  //frame_heartbeat
+  PROTOCOL  = 0x41,
+  METHOD    = 0x01, //frame_method
+  HEADER    = 0x02, //frame_header
+  BODY      = 0x03, //frame_contet
+  HEARTBEAT = 0x08  //frame_heartbeat
 };
 
 /*
@@ -92,23 +93,9 @@ typedef u_int16_t property_flag_t;
  * Amqp data structures
  *
  */
-typedef struct frame_format_t{
-  frame_type_t frame_type;
-  channel_t channel; //must be 0 - 65535
-  length_t length; //payload size excluding frame-end
-  union{
-    typedef struct frame_heartbeat_t frame_heartbeat;
-    typedef struct frame_protocol_header_t frame_protocol_header;
-    typedef struct frame_method_t frame_method;
-    typedef struct frame_header_t frame_header;
-    typedef struct frame_body_t frame_body;
-  } payload;
-  u_char frame_end; //must always be "%xCE"
-} frame_format;
-
 typedef struct frame_heartbeat_t{
-  //Has nothing inside;
-} frame_heartbeat;
+  char* a; 
+} frame_heartbeat_t;
 
 typedef struct frame_protocol_header_t{
   protocol_t protocol;
@@ -116,13 +103,13 @@ typedef struct frame_protocol_header_t{
   id_minor_t id_minor;
   version_major_t version_major;
   version_minor_t version_minor;
-} protocol_header;
+} frame_protocol_header_t;
 
 typedef struct frame_method_t{
   class_id_t class_id;
   method_id_t method_id;
   void *arguments;
- } frame_method;
+ } frame_method_t;
 
 typedef struct frame_header_t{
   class_id_t class_id;
@@ -130,12 +117,26 @@ typedef struct frame_header_t{
   body_size_t body_size;
   property_flag_t property_flag;
   void* property_list;
- } frame_header; 
+ } frame_header_t; 
 
 typedef struct frame_body_t{
   length_t length;
   void *buffer;
-} frame_body;
+} frame_body_t;
+
+typedef struct frame_format_t{
+  enum frame_type_t frame_type;
+  channel_t channel; //must be 0 - 65535
+  length_t length; //payload size excluding frame-end
+  union{
+    frame_heartbeat_t frame_heartbeat;
+    frame_protocol_header_t frame_protocol_header;
+    frame_method_t frame_method;
+    frame_header_t frame_header;
+    frame_body_t frame_body;
+  } payload;
+  u_char frame_end; //must always be "%xCE"
+} frame_format_t;
 
 /* 
 frame_protocol_header:
@@ -195,7 +196,7 @@ peitando o esquema de Round Robin caso mais de um cliente esteja conectado na me
 /*
  * Structure any packet received. 
  */
-frame_format_t* parse_frame(char* packet);
+frame_format_t* parse_frame(char* recvline, size_t n);
 
 unsigned char* read_heartbeat_packet();
 unsigned char* create_heartbeat_packet();
