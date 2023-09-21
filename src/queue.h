@@ -13,7 +13,7 @@ typedef struct queue_node_t{
   struct queue_t * next;
   size_t buffer_size;
   char* buffer;
-} queue_node;
+} queue_node_t;
 
 /*
  *
@@ -36,7 +36,7 @@ typedef struct queue_t{
 typedef struct queues_handler_t{
     queue_t* next_queue;
     queue_t* current_queue;
-} queues_handler;
+} queues_handler_t;
 
 /*
  *
@@ -44,7 +44,7 @@ typedef struct queues_handler_t{
  *
  * */
 queues_handler_t* new_queue_handler();
-queues_handler_t* enqueue(queues_handler_t head, queue_t new_queue);
+queues_handler_t* qh_enqueue(queues_handler_t head, queue_t new_queue);
 queue_t* get_queue_by_name(queues_handler_t head, char* name);
 void free_queue_handler(queues_handler_t head);
 
