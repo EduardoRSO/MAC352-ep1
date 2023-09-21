@@ -62,9 +62,3 @@ char* create_basic_qos_ok_packet(){
     memcpy(pkt,BASIC_QOS_OK_PKT, strlen(BASIC_QOS_OK_PKT));
     return pkt; 
 }
-
-char* create_basic_qos_ok_packet(){
-    char* pkt = NULL;
-    memcpy(pkt,BASIC_QOS_OK_PKT, strlen(BASIC_QOS_OK_PKT));
-    return pkt; 
-}
