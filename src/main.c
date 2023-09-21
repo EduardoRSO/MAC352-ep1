@@ -40,9 +40,23 @@
 #include <time.h>
 #include <unistd.h>
 
+#include "amqp.h"
+
 #define LISTENQ 1
 #define MAXDATASIZE 100
 #define MAXLINE 4096
+
+void print_hex(char* s, size_t size){
+    for(int i = 0; i < size; ++i)
+        printf("%02x ", (unsigned int)*s++);
+    printf("\n");       
+}
+
+void print_hex_(u_int16_t* s, size_t size){
+    for(int i = 0; i < size; ++i)
+        printf("%02x ", (unsigned int) *s++);
+    printf("\n");       
+}
 
 int main (int argc, char **argv) {
     /* Os sockets. Um que será o socket que vai escutar pelas conexões
@@ -172,7 +186,53 @@ int main (int argc, char **argv) {
              */
             while ((n=read(connfd, recvline, MAXLINE)) > 0) {
                 recvline[n]=0;
-                printf("[Cliente conectado no processo filho %d enviou:] ",getpid());
+                printf("[Cliente conectado no processo filho %d enviou: ",getpid());
+                print_hex(recvline, n);
+                int frame_type = parse_frame_type(recvline);
+                switch (frame_type){
+                case CONNECTION_START:
+                        char* connection_start = create_connection_start_packet();
+                        print_hex(connection_start, strlen(connection_start)-2);
+                        write(connfd, connection_start, strlen(connection_start) -2);
+                    break;
+                case CONNECTION_TUNE:
+                    break;
+
+                case CONNECTION_OPEN:
+                    break;
+
+                case CONNECTION_CLOSE:
+                    break;
+
+                case CHANNEL_OPEN:
+                    break;
+
+                case CHANNEL_CLOSE:
+                    break;
+
+                case QUEUE_DECLARE:
+                    break;
+                
+                case BASIC_PUBLISH:
+                    break;
+                
+                case BASIC_ACK:
+                    break;
+                
+                case BASIC_QOS:
+                    break;
+
+                case BASIC_CONSUME:
+                    break;
+
+                case BASIC_DELIVER:
+                    break;
+
+                default:
+                    printf("Unknown packet requested\n");
+                    break;
+                }
+                
                 if ((fputs(recvline,stdout)) == EOF) {
                     perror("fputs :( \n");
                     exit(6);
