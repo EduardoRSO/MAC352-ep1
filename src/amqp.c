@@ -5,8 +5,18 @@
 #include "hardcode.h"
 #include <string.h>
 
-int parse_frame_type(char * recvline){
-    return recvline[0];
+long int parse_frame_class(char * recvline){
+    char class[2];
+    class[0] = recvline[7];
+    class[1] = recvline[8];
+    return strtol(class, NULL, 16);
+}
+
+long int parse_frame_method(char * recvline){
+    char method[2];
+    method[0] = recvline[9];
+    method[1] = recvline[10];
+    return strtol(method, NULL, 16);
 }
 
 char* create_connection_start_ok_packet(){

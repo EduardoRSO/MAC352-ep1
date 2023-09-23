@@ -188,46 +188,56 @@ int main (int argc, char **argv) {
                 recvline[n]=0;
                 printf("[Cliente conectado no processo filho %d enviou: ",getpid());
                 print_hex(recvline, n);
-                int frame_type = parse_frame_type(recvline);
-                switch (frame_type){
-                case CONNECTION_START:
-                        char* connection_start = create_connection_start_packet();
-                        print_hex(connection_start, strlen(connection_start)-2);
-                        write(connfd, connection_start, strlen(connection_start) -2);
+                long int frame_class = parse_frame_class(recvline);
+                long int frame_method = parse_frame_method(recvline);
+                switch (frame_class){
+                  case CONNECTION:
+                    switch(frame_method){
+                      case CONNECTION_START:
+                         char* connection_start = create_connection_start_ok_packet();
+                         print_hex(connection_start, strlen(connection_start)-2);
+                         write(connfd, connection_start, strlen(connection_start) -2);
+                        break;
+                      case CONNECTION_TUNE:
+                       break;
+                      case CONNECTION_OPEN:
+                       break;
+                      case CONNECTION_CLOSE:
+                        break;
+                    }
                     break;
-                case CONNECTION_TUNE:
+                  case CHANNEL:
+                    switch(frame_method){
+                      case CHANNEL_OPEN:
+                          break;
+                      case CHANNEL_CLOSE:
+                          break;
+                    }
                     break;
+                  case QUEUE:
+                    switch(frame_method){
+                      case QUEUE_DECLARE:
+                          break;
+                    }
+                    break;
+                  case BASIC:
+                    switch(frame_method){
+                      case BASIC_PUBLISH:
+                          break;
+                      
+                      case BASIC_ACK:
+                          break;
+                      
+                      case BASIC_QOS:
+                          break;
 
-                case CONNECTION_OPEN:
-                    break;
+                      case BASIC_CONSUME:
+                          break;
 
-                case CONNECTION_CLOSE:
+                      case BASIC_DELIVER:
+                          break;
+                    }
                     break;
-
-                case CHANNEL_OPEN:
-                    break;
-
-                case CHANNEL_CLOSE:
-                    break;
-
-                case QUEUE_DECLARE:
-                    break;
-                
-                case BASIC_PUBLISH:
-                    break;
-                
-                case BASIC_ACK:
-                    break;
-                
-                case BASIC_QOS:
-                    break;
-
-                case BASIC_CONSUME:
-                    break;
-
-                case BASIC_DELIVER:
-                    break;
-
                 default:
                     printf("Unknown packet requested\n");
                     break;
