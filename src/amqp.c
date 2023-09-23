@@ -41,7 +41,7 @@ char* create_channel_open_ok_packet(){
 
 char* create_channel_close_ok_packet(){
     char* pkt = NULL;
-    memcpy(pkt,CHANNEL_OPEN_OK_PKT, strlen(CHANNEL_OPEN_OK_PKT));
+    memcpy(pkt,CHANNEL_CLOSE_OK_PKT, strlen(CHANNEL_CLOSE_OK_PKT));
     return pkt; 
 }
 

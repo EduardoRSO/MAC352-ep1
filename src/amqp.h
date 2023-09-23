@@ -201,19 +201,9 @@ char* create_connection_start_ok_packet();
 char* create_connection_tune_ok_packet();
 char* create_connection_open_ok_packet();
 char* create_connection_close_ok_packet();
-//declare the others later
-
-unsigned char* read_heartbeat_packet();
-unsigned char* create_heartbeat_packet();
-
-unsigned char* read_method_packet();
-unsigned char* create_method_packet(class_id_t class_id, method_id_t);
-
-unsigned char* read_header_pacter();
-unsigned char* create_header_packet();
-
-unsigned char* read_body_packet();
-unsigned char* create_body_packet();
-
-
+char* create_channel_open_ok_packet();
+char* create_channel_close_ok_packet();
+char* create_queue_declare_ok_packet();
+char* create_basic_consume_ok_packet();
+char* create_basic_qos_ok_packet();
 #endif
