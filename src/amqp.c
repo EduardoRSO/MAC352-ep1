@@ -19,16 +19,10 @@ void print_hex_(u_int16_t* s, size_t size){
 }
   
 
-long int parse_frame_class(char * recvline, int n){
-    printf("%x\n", recvline[0]);
-    return 0;
+unsigned char parse_frame_class(char * recvline, int n){
+    return recvline[8];
 }
 
-long int parse_frame_method(char * recvline, int n){
-    char method[n];
-    strncpy(method, recvline + (8-1), 10);
-    print_hex(method, n);
-    long int l = strtol(method, NULL, 0);
-    printf("%ld\n", l);
-    return strtol(method, NULL, 0);
+unsigned char parse_frame_method(char * recvline, int n){
+    return recvline[10];
 }

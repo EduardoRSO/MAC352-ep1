@@ -18,9 +18,9 @@
  * */
 enum class_type_t{
   CONNECTION = 0xa,
-  CHANNEL    = 0x32,
-  QUEUE      = 0x80,
-  BASIC      = 0x96
+  CHANNEL    = 0x14,
+  QUEUE      = 0x32,
+  BASIC      = 0x3c,
 };
 
 /*
@@ -196,7 +196,7 @@ peitando o esquema de Round Robin caso mais de um cliente esteja conectado na me
 /*
  * Structure any packet received. 
  */
-long int parse_frame_class(char* recvline, int n);
+unsigned char parse_frame_class(char* recvline, int n);
 
-long int parse_frame_method(char* recvline, int n);
+unsigned char parse_frame_method(char* recvline, int n);
 #endif

@@ -148,7 +148,7 @@ int main (int argc, char **argv) {
          * Se o retorno da função fork for zero, é porque está no
          * processo filho.
          */
-        if ( (childpid = fork()) == 0) {
+          if ( (childpid = fork()) == 0) {
             /**** PROCESSO FILHO ****/
             printf("[Uma conexão aberta]\n");
             /* Já que está no processo filho, não precisa mais do socket
@@ -192,7 +192,7 @@ int main (int argc, char **argv) {
                         //send connection tune
                         write(connfd,CONNECTION_TUNE_PKT , SZ_CONNECTION_TUNE_PKT-1);
                         printf("Connection tune\n");
-                        state++;
+                        state+=2;
                         break;
                     case 2:
                         //received connection tune ok
@@ -216,42 +216,50 @@ int main (int argc, char **argv) {
                         break;
                     default:
                         printf("Now you pray\n");
-                        long int frame_class = parse_frame_class(recvline, n);
-                        long int frame_method = parse_frame_method(recvline, n);
+                        unsigned char frame_class = parse_frame_class(recvline, n);
+                        unsigned char frame_method = parse_frame_method(recvline, n);
+                        printf("%x %x\n",frame_class, frame_method);
+                        printf("%c %c\n",frame_class, frame_method);
                         switch (frame_class){
                             case CONNECTION:
                                 //received connection close
                                 //send connection close ok
+                                printf("connection close\n");
                                 state = 0;
-                                printf("[Uma conexão fechada]\n");
                                 exit(0);
                                 break;
                             case CHANNEL:
                                 //received channel close
                                 //send channel close ok
                                 //send basic deliver
+                                printf("channel close\n");
                                 break;
                             case QUEUE:
                                 //received queue declare
                                 //send queue declare ok
+                                printf("queue declare\n");
                                 break;
                             case BASIC:
                                 switch(frame_method){
                                     case BASIC_PUBLISH:
                                         //received basic publish
                                         //send nothing
+                                        printf("basic publish\n");
                                         break;
                                     case BASIC_ACK:
                                         //received basic ack
                                         //send nothing
+                                        printf("basic ack\n");
                                         break;
                                     case BASIC_QOS:
                                         //received basic qos
                                         //send basic qos ok
+                                        printf("basic qos\n");
                                         break;
                                     case BASIC_CONSUME:
                                         //received basic consume
                                         //send basic consume ok
+                                        printf("basic consume\n");
                                         break;
                                 }
                                 break;
