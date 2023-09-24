@@ -196,17 +196,7 @@ peitando o esquema de Round Robin caso mais de um cliente esteja conectado na me
 /*
  * Structure any packet received. 
  */
-long int parse_frame_class(char* recvline);
+long int parse_frame_class(char* recvline, int n);
 
-long int parse_frame_method(char* recvline);
-
-char* create_connection_start_ok_packet();
-char* create_connection_tune_ok_packet();
-char* create_connection_open_ok_packet();
-char* create_connection_close_ok_packet();
-char* create_channel_open_ok_packet();
-char* create_channel_close_ok_packet();
-char* create_queue_declare_ok_packet();
-char* create_basic_consume_ok_packet();
-char* create_basic_qos_ok_packet();
+long int parse_frame_method(char* recvline, int n);
 #endif
