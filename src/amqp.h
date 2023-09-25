@@ -196,7 +196,11 @@ peitando o esquema de Round Robin caso mais de um cliente esteja conectado na me
 /*
  * Structure any packet received. 
  */
+void print_hex(char* recvline, size_t size);
+
 unsigned char parse_frame_class(char* recvline, int n);
 
 unsigned char parse_frame_method(char* recvline, int n);
+
+void getString(char* s, char* recvline, int start);
 #endif
