@@ -52,4 +52,33 @@ void free_structure_queues_data(){
     free_shared_data(queues_data.queue_consumers, MAX_QUEUE_NUMBER * sizeof(unsigned int**));
 }
 
+void add_queue(char* queue_name){
+    for(int i = 0; i < MAX_QUEUE_NUMBER; i++){
+        if(strcmp(queues_data.queue_name[i],'0')){
+            strcpy(queues_data.queue_name[i], queue_name);
+            return;
+        }
+    }
+    printf("add_queue()\n");
+}
 
+void publish(char* queue_name, char* msg){
+    int i = get_id(queue_name);
+    for(int j = 0; j < MAX_MESSAGE_NUMBER; j++){
+        if(strcmp(queues_data.queue_messages[i][j],'0')){
+            strcpy(queues_data.queue_messages[i][j],msg);
+            return;
+        }
+    }
+    printf("publish()\n");
+}
+
+int get_id(char* queue_name){
+    for(int i = 0; i < MAX_QUEUE_NUMBER;i++){
+        if(strcmp(queue_name,queues_data.queue_name[i])){
+            return i;
+        }
+    }
+    return -1;
+    printf("get_id()\n");
+}

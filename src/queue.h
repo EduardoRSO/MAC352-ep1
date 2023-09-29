@@ -29,9 +29,8 @@ void initialize_strucuture_queues_data();
 void free_structure_queues_data();
 void free_shared_data(void* p, size_t size);
 void* malloc_shared_data(size_t size);
-int add_queue(char* queue_name);
-int publish(char* queue_name, char* msg);
-int consume(char* queue_name);
+void add_queue(char* queue_name);
+void publish(char* queue_name, char* msg);
 int get_id(char* queue_name);
 
 #endif
