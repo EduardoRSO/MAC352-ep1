@@ -2,3 +2,4 @@
 src/amqp
 src/main
 src/.vscode/
+src/roundrobin.h
