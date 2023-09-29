@@ -3,67 +3,30 @@
 
 #include <sys/types.h>
 
+#define MAX_QUEUE_NUMBER 100
 
 /*
+ * I am goind to use mmap to share memory between forks, so I changed
+ * the struct to be a creepy array. Ex:
  *
- * Queue node that holds a message buffer waiting a consume call.
- *
- * */
-typedef struct queue_node_t{
-  struct queue_t * next;
-  size_t buffer_size;
-  char* buffer;
-} queue_node_t;
-
-/*
- *
- * Queue head to avoid duplicating queue_name for each queue node.
- *
+ *  char* QUEUE_NAME queues_data[i].queue_name           -> holds queue name
+ *  char** QUEUE_MESSAGES queues_data[i].queue_messages  -> holds messages
+ *  int** QUEUE_CONSUMERS queues_data[i].queue_consumers -> schedule consumers
+ * 
  * */
 typedef struct queue_t{
-  char* queue_name;
-  size_t queue_size;
-  queue_node_t* head;
-  queue_node_t* last;
-} queue_t;
+  char**  queue_name;
+  char*** queue_messages;
+  int***  queue_consumers;
+} queue;
 
+extern queue queues_data;
 
-/*
- *
- * Holds all queues in use. It is just a circular linked list of queue_t.
- *
- * */
-typedef struct queues_handler_t{
-    queue_t* next_queue;
-    queue_t* current_queue;
-} queues_handler_t;
-
-/*
- *
- * Queue Handler Functions
- *
- * */
-queues_handler_t* new_queue_handler();
-queues_handler_t* qh_enqueue(queues_handler_t head, queue_t new_queue);
-queue_t* get_queue_by_name(queues_handler_t head, char* name);
-void free_queue_handler(queues_handler_t head);
-
-/*
- *
- * Queue Functions
- *
- * */
-queue_t* new_queue();
-queue_t enqueue(queue_t head, char* buffer);
-queue_t dequeue(queue_t head, char* buffer);
-void free_queue(queue_t head);
-
-/*
- *
- * Queue Node Functions
- *
- * */
-queue_node_t* new_queue_node();
-void free_queue_node(queue_node_t head);
+void create_queues();
+void free_queues();
+int add_queue(char* queue_name);
+int publish(char* queue_name, char* msg);
+int consume(char* queue_name);
+int get_id(char* queue_name);
 
 #endif
