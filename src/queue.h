@@ -4,8 +4,8 @@
 #include <sys/types.h>
 
 #define MAX_QUEUE_SIZE 100
-#define MAX_QUEUE_NAME_SIZE 1024
-#define MAX_MESSAGE_SIZE 1024
+#define MAX_QUEUE_NAME_SIZE 100
+#define MAX_MESSAGE_SIZE 100
 #define MAX_CONSUMER_NUMBER 100
 #define MAX_MESSAGE_NUMBER 100
 
@@ -34,6 +34,7 @@ void* malloc_shared_data(size_t size);
 void add_queue(char* queue_name);
 void publish(char* queue_name, char* msg);
 void add_consumer(char* queue_name, int* connfd);
+void consume(char* queue_name, int* connfd, char* msg);
 int get_id(char* queue_name);
 
 #endif

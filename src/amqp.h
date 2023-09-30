@@ -4,7 +4,7 @@
 #include <sys/types.h>
 #include <netinet/in.h>
 #include "queue.h"
-
+#define MAXLINE 4096
 
 enum class_type_t{
   CONNECTION = 0xa,
@@ -72,4 +72,28 @@ u_int16_t parse_frame_class(char* recvline, int connfd);
 u_int16_t parse_frame_method(char* recvline, int connfd);
 
 void getString(char* s, char* recvline, int start);
+
+void getQueueName(int connfd, char* recvline, uint32_t frame_length, char* qName);
+
+void getPublishData(int connfd, char* recvline, uint32_t frame_length, char* qName, char* payload);                                
+
+void send_connection_start(int connfd);
+
+void send_connection_tune(int connfd, char* recvline, u_int32_t frame_length);
+
+void send_connection_open_ok(int connfd, char* recvline, u_int32_t frame_length);
+
+void send_connection_close_ok(int connfd, char* recvline, u_int32_t frame_length);
+
+void send_channel_open_ok(int connfd, char* recvline, u_int32_t frame_length);
+
+void send_channel_close_ok(int connfd, char* recvline, u_int32_t frame_length);
+
+void send_queue_declare_ok(int connfd, char* recvline, u_int32_t frame_length, char* qName);
+
+void send_basic_qos_ok(int connfd, char* recvline, u_int32_t frame_length);
+
+void send_basic_ack(int connfd, char* recvline, u_int32_t frame_length);
+
+void send_basic_consume_ok(int connfd, char* recvline, u_int32_t frame_length);
 #endif

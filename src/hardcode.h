@@ -21,8 +21,11 @@ extern const char CHANNEL_OPEN_OK_PKT[];
 extern const size_t SZ_CHANNEL_CLOSE_OK_PKT;
 extern const char CHANNEL_CLOSE_OK_PKT[];
 
-extern const size_t SZ_QUEUE_DECLARE_OK_PKT;
-extern const char QUEUE_DECLARE_OK_PKT[];
+extern const size_t SZ_QUEUE_DECLARE_OK_PKT1;
+extern const char QUEUE_DECLARE_OK_PKT1[];
+
+extern const size_t SZ_QUEUE_DECLARE_OK_PKT2;
+extern const char QUEUE_DECLARE_OK_PKT2[];
 
 extern const size_t SZ_BASIC_CONSUME_OK_PKT;
 extern const char BASIC_CONSUME_OK_PKT[];

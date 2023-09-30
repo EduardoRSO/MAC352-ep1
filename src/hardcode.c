@@ -52,10 +52,13 @@ const size_t SZ_CHANNEL_OPEN_OK_PKT = 17;
 const char CHANNEL_CLOSE_OK_PKT[] = "\x01\x00\x01\x00\x00\x00\x04\x00\x14\x00\x29\xce";
 const size_t SZ_CHANNEL_CLOSE_OK_PKT = 13;
 
-const char QUEUE_DECLARE_OK_PKT[] = 
-"\x01\x00\x01\x00\x00\x00\x0f\x00\x32\x00\x0b\x02\x71\x31\x00\x00"
-"\x00\x00\x00\x00\x00\x00\xce";
-const size_t SZ_QUEUE_DECLARE_OK_PKT = 24;
+const char QUEUE_DECLARE_OK_PKT1[] = 
+"\x01\x00\x01\x00\x00\x00\x0f\x00\x32\x00\x0b\x02";
+const size_t SZ_QUEUE_DECLARE_OK_PKT1 = 13;
+
+const char QUEUE_DECLARE_OK_PKT2[] = 
+"\x00\x00\x00\x00\x00\x00\x00\x00\xce";
+const size_t SZ_QUEUE_DECLARE_OK_PKT2 = 10;
 
 const char BASIC_CONSUME_OK_PKT[] = 
 "\x01\x00\x01\x00\x00\x00\x24\x00\x3c\x00\x15\x1f\x61\x6d\x71\x2e" 

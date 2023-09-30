@@ -46,7 +46,7 @@
 #include "queue.h"
 
 #define LISTENQ 1
-#define MAXLINE 4096
+
 
 int main (int argc, char **argv) {
     /* Os sockets. Um que será o socket que vai escutar pelas conexões
@@ -156,7 +156,7 @@ int main (int argc, char **argv) {
          */
         if ( (childpid = fork()) == 0) {
             /**** PROCESSO FILHO ****/
-            printf("[Uma conexão aberta]\n");
+            //printf("[Uma conexão aberta]\n");
             /* Já que está no processo filho, não precisa mais do socket
              * listenfd. Só o processo pai precisa deste socket.
              */
@@ -179,7 +179,7 @@ int main (int argc, char **argv) {
             /* TODO: É esta parte do código que terá que ser modificada
              * para que este servidor consiga interpretar comandos AMQP
              */
-            printf("[Cliente conectado no processo filho %d\n",getpid());
+            printf("[conexão %d aberta]\n", getpid());
             struct pollfd pfd[1];
             pfd[0].fd = connfd;
             pfd[0].events = POLLIN;
@@ -197,7 +197,6 @@ int main (int argc, char **argv) {
                     u_int32_t frame_length = parse_frame_length(recvline,connfd);
                     u_int16_t frame_class = parse_frame_class(recvline,connfd);
                     u_int16_t frame_method = parse_frame_method(recvline, connfd);
-                    //printf("type %d\nlength %d\nclass %d\nmethod %d\n",frame_type, frame_length, frame_class, frame_method);
                     switch (frame_class){
                         case CONNECTION:
                             switch (frame_method)
@@ -205,29 +204,24 @@ int main (int argc, char **argv) {
                             case CONNECTION_START_OK:
                                 //received connection start ok
                                 //send connection tune
-                                read(connfd, recvline, frame_length-3);
-                                write(connfd,CONNECTION_TUNE_PKT , SZ_CONNECTION_TUNE_PKT-1);
-                                //printf("Connection start ok\n");
+                                send_connection_tune(connfd, recvline, frame_length);
                                 break;
                             case CONNECTION_TUNE_OK:
                                 //received connection tune ok
+                                //send nothing and read full buffer
                                 read(connfd, recvline, frame_length-3);
-                                //printf("Connection tune ok ok\n");
                                 break;
                             case CONNECTION_OPEN:
                                 //received connection open
                                 //send connection open ok
-                                read(connfd, recvline, frame_length);
-                                write(connfd,CONNECTION_OPEN_OK_PKT , SZ_CONNECTION_OPEN_OK_PKT-1);
-                                //printf("Connection open\n");
+                                send_connection_open_ok(connfd, recvline, frame_length);
                                 break;
                             case CONNECTION_CLOSE:
                                 //received connection close
                                 //send connection close ok
-                                read(connfd, recvline, frame_length-3);
-                                write(connfd, CONNECTION_CLOSE_OK_PKT, SZ_CONNECTION_CLOSE_OK_PKT-1);
-                                //printf("connection close\n");
+                                send_connection_close_ok(connfd,recvline,frame_length);
                                 free_structure_queues_data();
+                                printf("[conexão %d fechada]\n", getpid());
                                 exit(0);
                                 break;
                             default:
@@ -241,17 +235,12 @@ int main (int argc, char **argv) {
                             case CHANNEL_OPEN:
                                 //received channel open
                                 //send channel open ok
-                                read(connfd, recvline, frame_length-3);
-                                write(connfd,CHANNEL_OPEN_OK_PKT , SZ_CHANNEL_OPEN_OK_PKT-1);
-                                //printf("Channel open\n");
+                                send_channel_open_ok(connfd, recvline, frame_length);
                                 break;
                             case CHANNEL_CLOSE:
                                 //received channel close
                                 //send channel close ok
-                                read(connfd, recvline, frame_length-3);
-                                write(connfd, CHANNEL_CLOSE_OK_PKT, SZ_CHANNEL_CLOSE_OK_PKT-1);
-                                //write(connfd, BASIC_DELIVER_PKT, SZ_BASIC_DELIVER_PKT);    
-                                //printf("channel close\n");
+                                send_channel_close_ok(connfd, recvline, frame_length);
                                 break;
                             default:
                                 printf("Unknown channel class packet\n");
@@ -261,55 +250,43 @@ int main (int argc, char **argv) {
                         case QUEUE:
                             //received queue declare
                             //send queue declare ok
-                            read(connfd, recvline, frame_length-3); //get queue name
                             char qName[MAX_QUEUE_NAME_SIZE];
-                            getString(qName, recvline, 3);
-                            puts(qName);
+                            getQueueName(connfd,recvline,frame_length,qName);
                             add_queue(qName);
-                            write(connfd, QUEUE_DECLARE_OK_PKT, SZ_QUEUE_DECLARE_OK_PKT-1);
-                            printf("queue declare\n");
+                            send_queue_declare_ok(connfd, recvline, frame_length, qName);
                             break;
                         case BASIC:
                             switch(frame_method){
                                 case BASIC_PUBLISH:
                                     //received basic publish
                                     //send nothing
-                                    read(connfd, recvline, frame_length-3);
                                     char qName[MAX_QUEUE_SIZE];
                                     char payload[MAX_MESSAGE_SIZE];
-                                    getString(qName,recvline,4);
-                                    puts(qName);
-                                    read(connfd,recvline, MAXLINE);
-                                    getString(payload,recvline,30);
-                                    payload[strlen(payload)-2] = 0;
-                                    puts(payload);
+                                    getPublishData(connfd, recvline, frame_length, qName, payload);
                                     publish(qName, payload);                                        
-                                    write(connfd, CHANNEL_CLOSE_OK_PKT, SZ_CHANNEL_CLOSE_OK_PKT-1);
-                                    //printf("basic publish\n");
+                                    //write(connfd, CHANNEL_CLOSE_OK_PKT, SZ_CHANNEL_CLOSE_OK_PKT-1);
                                     break;
                                 case BASIC_ACK:
                                     //received basic ack
                                     //send nothing
-                                    read(connfd, recvline, frame_length-3);
-                                    //printf("basic ack\n");
+                                    send_basic_ack(connfd, recvline, frame_length);
                                     break;
                                 case BASIC_QOS:
                                     //received basic qos
                                     //send basic qos ok
-                                    read(connfd, recvline, frame_length-3);
-                                    write(connfd, BASIC_QOS_OK_PKT, SZ_BASIC_QOS_OK_PKT-1);
-                                    //printf("basic qos\n");
+                                    send_basic_qos_ok(connfd, recvline, frame_length);
                                     break;
                                 case BASIC_CONSUME:
                                     //received basic consume
                                     //send basic consume ok
-                                    read(connfd, recvline, frame_length-3);
                                     char qNameC[MAX_QUEUE_SIZE];
-                                    getString(qNameC, recvline, 3);
-                                    puts(qNameC);
+                                    int sch;
+                                    char msg[MAX_MESSAGE_SIZE];
+                                    getQueueName(connfd,recvline,frame_length,qNameC);
                                     add_consumer(qNameC, &connfd);
-                                    write(connfd, BASIC_CONSUME_OK_PKT, SZ_BASIC_CONSUME_OK_PKT-1);
-                                    //printf("basic consume\n");
+                                    consume(qNameC, &sch, msg);
+                                    //printf("%d\n%s\n",sch, msg);
+                                    send_basic_consume_ok(connfd, recvline, frame_length);
                                     break;
                                 default:
                                     printf("Unknown basic class packet\n");
@@ -319,14 +296,11 @@ int main (int argc, char **argv) {
                         default:
                             //received protocol header
                             //send connection start
-                            write(connfd, CONNECTION_START_PKT, SZ_CONNECTION_START_PKT-1);
-                            //printf("connection start\n");                            
+                            send_connection_start(connfd);
                             break;       
                     }
                 }
-            
-                //printf("----------\n");
-        }
+    }
             
             /* ========================================================= */
             /* ========================================================= */
