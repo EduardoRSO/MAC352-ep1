@@ -21,7 +21,7 @@
 typedef struct queue_t{
   char**  queue_name;
   char*** queue_messages;
-  unsigned int***  queue_consumers;
+  int***  queue_consumers;
 } queue;
 
 extern queue queues_data;
@@ -33,7 +33,7 @@ void free_shared_data(void* p, size_t size);
 void* malloc_shared_data(size_t size);
 void add_queue(char* queue_name);
 void publish(char* queue_name, char* msg);
-void add_consumer(char* queue_name, int connfd);
+void add_consumer(char* queue_name, int* connfd);
 int get_id(char* queue_name);
 
 #endif

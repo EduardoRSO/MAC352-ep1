@@ -307,6 +307,7 @@ int main (int argc, char **argv) {
                                     char qNameC[MAX_QUEUE_SIZE];
                                     getString(qNameC, recvline, 3);
                                     puts(qNameC);
+                                    add_consumer(qNameC, &connfd);
                                     write(connfd, BASIC_CONSUME_OK_PKT, SZ_BASIC_CONSUME_OK_PKT-1);
                                     //printf("basic consume\n");
                                     break;
