@@ -49,6 +49,14 @@ enum frame_type_t{
   HEARTBEAT = 0x08  //frame_heartbeat
 };
 
+typedef struct frame_t{
+  u_int8_t type;
+  u_int16_t channel;
+  u_int32_t length;
+  u_int16_t class;
+  u_int16_t method;
+} frame;
+
 /*
 • Declaração da fila;
 • Conexão de vários clientes simultaneamente (cada cliente simultâneo pode publicar ou requisitar
@@ -61,7 +69,10 @@ peitando o esquema de Round Robin caso mais de um cliente esteja conectado na me
 /*
  * Structure any packet received. 
  */
-void print_hex(char* recvline, size_t size);
+
+//queue_declare_ok_pkt create_queue_declare_ok_frame(u_int8_t t, u_int16_t ch, u_int32_t l, u_int16_t cl, u_int16_t m, u_int8_t d, void* args, u_int32_t mc, u_int32_t cc);
+
+//void print_hex(char* recvline, size_t size);
 
 u_int8_t parse_frame_type(char* recvline, int connfd);
 

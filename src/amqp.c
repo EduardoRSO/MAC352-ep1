@@ -94,14 +94,40 @@ void send_channel_close_ok(int connfd, char* recvline, u_int32_t frame_length){
     write(connfd, CHANNEL_CLOSE_OK_PKT, SZ_CHANNEL_CLOSE_OK_PKT-1);
 }
 
+frame create_frame(u_int8_t t, u_int16_t ch, u_int32_t l, u_int16_t cl, u_int16_t m){
+    frame a;
+    a.type = t;
+    a.channel = htons(ch);
+    a.length = htonl(l);
+    a.class = htons(cl);
+    a.method = htons(m);
+    return a;
+}
+
+void unparse_frame(char *pkt, int*sz, frame a){
+    memcpy(pkt+*sz,(char*)&a.type,sizeof(a.type)); *sz+= sizeof(a.type);
+    memcpy(pkt+*sz,(char*)&a.channel,sizeof(a.channel)); *sz+= sizeof(a.channel);
+    memcpy(pkt+*sz,(char*)&a.length,sizeof(a.length)); *sz+= sizeof(a.length);
+    memcpy(pkt+*sz,(char*)&a.class,sizeof(a.class)); *sz+= sizeof(a.class);
+    memcpy(pkt+*sz,(char*)&a.method,sizeof(a.method)); *sz+= sizeof(a.method);
+}
+
+void unparse_queue_ok(char*pkt, int*sz, char* qName){
+    u_int8_t len = strlen(qName);
+    u_int32_t v3 = htonl(0);
+    memcpy(pkt+*sz,(char*)&(len),sizeof(len)); *sz+= sizeof(len);
+    memcpy(pkt+*sz,qName, len); *sz+= len;
+    memcpy(pkt+*sz,(char*)&(v3),sizeof(v3)); *sz+= sizeof(v3);
+    memcpy(pkt+*sz,(char*)&(v3),sizeof(v3)); *sz+= sizeof(v3);
+    memcpy(pkt+*sz, "\xce",1); *sz+=1;
+}
+
 void send_queue_declare_ok(int connfd, char* recvline, u_int32_t frame_length, char* qName){
-    char pkt[MAXLINE];
-    //o length do pkt1 precisa ser alterado, então na verdade será preciso que um pacote inteiro seja construido se atendo aos detalhes
-    memcpy(pkt, QUEUE_DECLARE_OK_PKT1, SZ_QUEUE_DECLARE_OK_PKT1);
-    memcpy(pkt + SZ_QUEUE_DECLARE_OK_PKT1, qName, strlen(qName));
-    memcpy(pkt+SZ_QUEUE_DECLARE_OK_PKT1 + strlen(qName), QUEUE_DECLARE_OK_PKT2, SZ_QUEUE_DECLARE_OK_PKT2 -1);    
-    print_hex(pkt, SZ_QUEUE_DECLARE_OK_PKT1 + strlen(qName) + SZ_QUEUE_DECLARE_OK_PKT2-2);
-    write(connfd, pkt, SZ_QUEUE_DECLARE_OK_PKT1 + strlen(qName) + SZ_QUEUE_DECLARE_OK_PKT2-2);
+    char pkt[MAXLINE];int sz = 0;
+    unparse_frame(pkt,&sz, create_frame(1,1,frame_length+1,50,11));
+    unparse_queue_ok(pkt,&sz, qName);
+    print_hex(pkt, sz);
+    write(connfd, pkt, sz);
 }
 
 void send_basic_qos_ok(int connfd, char* recvline, u_int32_t frame_length){
