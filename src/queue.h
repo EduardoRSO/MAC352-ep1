@@ -34,7 +34,7 @@ void* malloc_shared_data(size_t size);
 void add_queue(char* queue_name);
 void publish(char* queue_name, char* msg);
 void add_consumer(char* queue_name, int* connfd);
-void consume(char* queue_name, int* connfd, char* msg);
+int consume(char* queue_name, int* connfd, char* msg);
 int get_id(char* queue_name);
 
 #endif

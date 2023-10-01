@@ -58,7 +58,7 @@ void add_queue(char* queue_name){
     int i;
     if((i = get_id(queue_name)) == -1)
         i = get_id(empty);
-    memcpy(queues_data.queue_name[i], queue_name, MAX_QUEUE_NAME_SIZE);
+    memcpy(queues_data.queue_name[i], queue_name, strlen(queue_name));
 }
 
 void publish(char* queue_name, char* msg){
@@ -87,16 +87,25 @@ void add_consumer(char* queue_name, int* connfd){
 }
 
 
-void consume(char* queue_name, int* connfd, char* msg){
+int consume(char* queue_name, int* connfd, char* msg){
     int i = get_id(queue_name);
+    if(queues_data.queue_consumers[i][0][0] == 0 || strcmp(queues_data.queue_messages[i][0], empty)==0) return 0;
     *connfd = queues_data.queue_consumers[i][0][0];
-    //printf("%d\n",i);
-    //puts(queues_data.queue_messages[i][0]);
     memcpy(msg, queues_data.queue_messages[i][0], MAX_MESSAGE_SIZE);
     for (int j = 1; j < MAX_CONSUMER_NUMBER; j++){
-        queues_data.queue_consumers[i][j-1][0] = queues_data.queue_consumers[i][j][0];
-        memcpy(queues_data.queue_messages[i][j-1],queues_data.queue_messages[i][j],MAX_MESSAGE_SIZE);
+        if(queues_data.queue_consumers[i][j][0] != 0){ 
+            queues_data.queue_consumers[i][j-1][0] = queues_data.queue_consumers[i][j][0];
+        }else{ 
+            queues_data.queue_consumers[i][j][0] = *connfd;
+            break;
+        }
     }
+    for(int j = 1; j < MAX_MESSAGE_NUMBER;j++)
+        if(strcmp(queues_data.queue_messages[i][j], empty) != 0) 
+            memcpy(queues_data.queue_messages[i][j-1],queues_data.queue_messages[i][j],MAX_MESSAGE_SIZE);
+        else 
+            break;
+    return 1;   
 }
 
 int get_id(char* queue_name){
@@ -108,6 +117,5 @@ int get_id(char* queue_name){
     return -1;
 }
 
-//add a consume function, so it acces queues_data and modify all three arrays
 //send deliver pkt
-//change consume ok, declare queue ok, deliver pkt
+//deliver pkt

@@ -82,6 +82,18 @@ u_int16_t parse_frame_class(char* recvline, int connfd);
 
 u_int16_t parse_frame_method(char* recvline, int connfd);
 
+frame create_frame(u_int8_t t, u_int16_t ch, u_int32_t l, u_int16_t cl, u_int16_t m);
+
+void unparse_frame(char *pkt, int*sz, frame a);
+
+void unparse_queue_ok(char*pkt, int*sz, char* qName);
+
+void unparse_deliver(char* pkt, int* sz, char* qName);
+
+void unparse_content_header(char* pkt,int* sz,int msg_length);
+
+void unparse_content_body(char* pkt, int* sz,char* msg);
+
 void getString(char* s, char* recvline, int start);
 
 void getQueueName(int connfd, char* recvline, uint32_t frame_length, char* qName);
@@ -107,4 +119,6 @@ void send_basic_qos_ok(int connfd, char* recvline, u_int32_t frame_length);
 void send_basic_ack(int connfd, char* recvline, u_int32_t frame_length);
 
 void send_basic_consume_ok(int connfd, char* recvline, u_int32_t frame_length);
+
+void send_basic_deliver(int connfd, char* qName, char* msg);
 #endif

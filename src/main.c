@@ -46,7 +46,91 @@
 #include "queue.h"
 
 #define LISTENQ 1
+char *e = '\0';
 
+void print_consumers(int i){
+    for(int j = 0; j < MAX_CONSUMER_NUMBER;j++){
+        printf("  [C]:");
+        if(queues_data.queue_consumers[i][j][0] != 0){
+            printf("%d, ",queues_data.queue_consumers[i][j][0]);
+        }
+        else{
+            printf("\n");
+            break;
+        }
+    }
+}
+
+void print_names(){
+    for(int i = 0; i < MAX_QUEUE_SIZE;i++){
+        if(strcmp(queues_data.queue_name[i],e) != 0){
+            printf("%s\n",queues_data.queue_name[i]);
+        }
+        else{
+            printf("\n");
+            break; 
+        }
+    }
+}
+
+void print_messages(int i){
+    for(int j = 0; j < MAX_MESSAGE_NUMBER;j++){
+        printf("  [M]:");
+        if(strcmp(queues_data.queue_messages[i][j], e) != 0){
+            printf("%s, ",queues_data.queue_messages[i][j]);
+        }
+        else{
+            printf("\n");
+            break;
+        }
+    }
+}
+void print_queues_data(){
+    printf("queues_data:\n");
+    print_consumers(0);
+    print_messages(0);
+    for(int i = 0; i < MAX_QUEUE_SIZE;i++){
+        printf("cara????");
+        printf("%d %s %d",i, queues_data.queue_name[i], strcmp(queues_data.queue_name[i],e));
+        if(strcmp(queues_data.queue_name[i],e) != 0){
+            printf("%s\n",queues_data.queue_name[i]);
+            print_consumers(i);
+            print_messages(i);
+        }
+        else{
+            printf("\n");
+            break; 
+        }
+    }
+}
+
+void deliver(char* qName){
+    int sch;
+    char msg[MAXLINE];
+    if(consume(qName, &sch, msg)){
+        send_basic_deliver(sch, qName, msg);
+    }
+}
+
+void deliver_all(){
+    //print_queues_data();
+    for(int i=0;i<MAX_QUEUE_SIZE;i++){
+        int sch;
+        char msg[MAXLINE];
+        printf("entrei aqui\n");
+        if(strcmp(queues_data.queue_name[i],e) != 0){
+            printf("entrei aqui2\n");
+            while(consume(queues_data.queue_name[i], &sch, msg)){
+                printf("entrei aqui3\n");
+                send_basic_deliver(sch, queues_data.queue_name[i], msg);
+                }
+        }
+        else{
+            printf("entrei aqui4\n");
+            break;
+        }
+    }
+}
 
 int main (int argc, char **argv) {
     /* Os sockets. Um que será o socket que vai escutar pelas conexões
@@ -65,7 +149,6 @@ int main (int argc, char **argv) {
     char recvline[MAXLINE + 1];
     /* Armazena o tamanho da string lida do cliente
      */
-    ssize_t n;
    
     if (argc != 2) {
         fprintf(stderr,"Uso: %s <Porta>\n",argv[0]);
@@ -193,7 +276,7 @@ int main (int argc, char **argv) {
                     write(connfd, CONNECTION_START_PKT, SZ_CONNECTION_START_PKT-1);
                     i++;
                     }
-                    u_int8_t frame_type = parse_frame_type(recvline, connfd);
+                    parse_frame_type(recvline, connfd);
                     u_int32_t frame_length = parse_frame_length(recvline,connfd);
                     u_int16_t frame_class = parse_frame_class(recvline,connfd);
                     u_int16_t frame_method = parse_frame_method(recvline, connfd);
@@ -220,6 +303,7 @@ int main (int argc, char **argv) {
                                 //received connection close
                                 //send connection close ok
                                 send_connection_close_ok(connfd,recvline,frame_length);
+                                //print_queues_data();
                                 free_structure_queues_data();
                                 printf("[conexão %d fechada]\n", getpid());
                                 exit(0);
@@ -241,6 +325,7 @@ int main (int argc, char **argv) {
                                 //received channel close
                                 //send channel close ok
                                 send_channel_close_ok(connfd, recvline, frame_length);
+                                //deliver_all();
                                 break;
                             default:
                                 printf("Unknown channel class packet\n");
@@ -253,6 +338,8 @@ int main (int argc, char **argv) {
                             char qName[MAX_QUEUE_NAME_SIZE];
                             getQueueName(connfd,recvline,frame_length,qName);
                             add_queue(qName);
+                            //printf("add_queue: %s\n",queues_data.queue_name[get_id(qName)]);
+                            //print_names();
                             send_queue_declare_ok(connfd, recvline, frame_length, qName);
                             break;
                         case BASIC:
@@ -263,7 +350,9 @@ int main (int argc, char **argv) {
                                     char qName[MAX_QUEUE_SIZE];
                                     char payload[MAX_MESSAGE_SIZE];
                                     getPublishData(connfd, recvline, frame_length, qName, payload);
-                                    publish(qName, payload);                                        
+                                    publish(qName, payload);
+                                    print_queues_data();   
+                                    //deliver(qName);                                     
                                     //write(connfd, CHANNEL_CLOSE_OK_PKT, SZ_CHANNEL_CLOSE_OK_PKT-1);
                                     break;
                                 case BASIC_ACK:
@@ -280,13 +369,10 @@ int main (int argc, char **argv) {
                                     //received basic consume
                                     //send basic consume ok
                                     char qNameC[MAX_QUEUE_SIZE];
-                                    int sch;
-                                    char msg[MAX_MESSAGE_SIZE];
                                     getQueueName(connfd,recvline,frame_length,qNameC);
                                     add_consumer(qNameC, &connfd);
-                                    consume(qNameC, &sch, msg);
-                                    //printf("%d\n%s\n",sch, msg);
                                     send_basic_consume_ok(connfd, recvline, frame_length);
+                                    //deliver_all();
                                     break;
                                 default:
                                     printf("Unknown basic class packet\n");
@@ -315,6 +401,5 @@ int main (int argc, char **argv) {
              */
             close(connfd);
     }
-    free_structure_queues_data();
     exit(0);
 }
