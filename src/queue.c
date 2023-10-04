@@ -113,13 +113,14 @@ int move_consumer_to_last_position(int i){
 }
 
 void remove_message(int i){
-    printf("%s\n",queues_data.queue_messages[i][0]);
+    //printf("%s\n",queues_data.queue_messages[i][0]);
     memcpy(queues_data.queue_messages[i][0], "\0", sizeof(char));
-    printf("%s\n",queues_data.queue_messages[i][0]);
+    //printf("%s\n",queues_data.queue_messages[i][0]);
     for(int j = 0; j < MAX_MESSAGE_NUMBER; j++){
         if(strcmp(queues_data.queue_messages[i][j+1],empty) != 0){
             memcpy(queues_data.queue_messages[i][j],queues_data.queue_messages[i][j+1], strlen(queues_data.queue_messages[i][j+1]));
-            printf("%s\n",queues_data.queue_messages[i][j]);
+            memcpy(queues_data.queue_messages[i][j+1], "\0", sizeof(char));
+            //printf("%s\n",queues_data.queue_messages[i][j]);
         }else{
             break;
         }
