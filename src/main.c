@@ -39,6 +39,7 @@
 #include <arpa/inet.h>
 #include <time.h>
 #include <unistd.h>
+#include <string.h>
 
 #include "amqp.h"
 #include "hardcode.h"
@@ -46,13 +47,14 @@
 #include "queue.h"
 
 #define LISTENQ 1
-char *e = '\0';
 
+char *e = '\0';
+/*
 void print_consumers(int i){
     for(int j = 0; j < MAX_CONSUMER_NUMBER;j++){
         printf("  [C]:");
-        if(queues_data.queue_consumers[i][j][0] != 0){
-            printf("%d, ",queues_data.queue_consumers[i][j][0]);
+        if(queues_data.queue_consumers[i][j] != 0){
+            printf("%d, ",queues_data.queue_consumers[i][j]);
         }
         else{
             printf("\n");
@@ -62,9 +64,10 @@ void print_consumers(int i){
 }
 
 void print_names(){
+    printf("names:\n");
     for(int i = 0; i < MAX_QUEUE_SIZE;i++){
         if(strcmp(queues_data.queue_name[i],e) != 0){
-            printf("%s\n",queues_data.queue_name[i]);
+            printf("%s ",queues_data.queue_name[i]);
         }
         else{
             printf("\n");
@@ -103,34 +106,40 @@ void print_queues_data(){
         }
     }
 }
-
+*/
 void deliver(char* qName){
     int sch;
     char msg[MAXLINE];
-    if(consume(qName, &sch, msg)){
+    //printf("deliver_1: %s\n", qName);
+    if(consume(qName, &sch, msg) != -1){
+        //printf("deliver_2: %d %s %s\n",sch, qName, msg);
+        printf("    [+]deliver: %s %d %s\n", qName, sch, msg);
         send_basic_deliver(sch, qName, msg);
+    }else{
+        printf("    [-]deliver: consume: %s %d %s\n", qName, sch, msg);
     }
 }
-
+/*
 void deliver_all(){
     //print_queues_data();
     for(int i=0;i<MAX_QUEUE_SIZE;i++){
         int sch;
         char msg[MAXLINE];
-        printf("entrei aqui\n");
-        if(strcmp(queues_data.queue_name[i],e) != 0){
-            printf("entrei aqui2\n");
-            while(consume(queues_data.queue_name[i], &sch, msg)){
-                printf("entrei aqui3\n");
+        //printf("entrei aqui\n");
+        if(queues_data.queue_name[i] && strcmp(queues_data.queue_name[i],e) != 0){
+            //printf("entrei aqui2\n");
+            while(consume(queues_data.queue_name[i], &sch, msg) != -1){
+                //printf("entrei aqui3\n");
                 send_basic_deliver(sch, queues_data.queue_name[i], msg);
                 }
         }
         else{
-            printf("entrei aqui4\n");
+            //printf("entrei aqui4\n");
             break;
         }
     }
 }
+*/
 
 int main (int argc, char **argv) {
     /* Os sockets. Um que será o socket que vai escutar pelas conexões
@@ -221,6 +230,7 @@ int main (int argc, char **argv) {
          * vai criar um socket específico para esta conexão. O descritor
          * deste novo socket é o retorno da função accept.
          */
+        //print_queues_data();
         if ((connfd = accept(listenfd, (struct sockaddr *) NULL, NULL)) == -1 ) {
             perror("accept :(\n");
             exit(5);
@@ -268,6 +278,7 @@ int main (int argc, char **argv) {
             pfd[0].events = POLLIN;
             poll(pfd,1,-1);
             int i = 0;
+            //print_queues_data();
             while(1){
                 poll(pfd,1,-1);
                 if(pfd[0].revents & POLLIN){    
@@ -304,12 +315,13 @@ int main (int argc, char **argv) {
                                 //send connection close ok
                                 send_connection_close_ok(connfd,recvline,frame_length);
                                 //print_queues_data();
+                                //print_names();
                                 free_structure_queues_data();
                                 printf("[conexão %d fechada]\n", getpid());
                                 exit(0);
                                 break;
                             default:
-                                printf("Unknown connection class packet\n");
+                                printf("    [-]unknown connection class packet\n");
                                 break;
                             }
                             break;
@@ -328,7 +340,7 @@ int main (int argc, char **argv) {
                                 //deliver_all();
                                 break;
                             default:
-                                printf("Unknown channel class packet\n");
+                                printf("    [-]unknown channel class packet\n");
                                 break;
                             }
                             break;
@@ -336,10 +348,9 @@ int main (int argc, char **argv) {
                             //received queue declare
                             //send queue declare ok
                             char qName[MAX_QUEUE_NAME_SIZE];
-                            getQueueName(connfd,recvline,frame_length,qName);
+                            get_queue_name(connfd,recvline,frame_length,qName);
                             add_queue(qName);
-                            //printf("add_queue: %s\n",queues_data.queue_name[get_id(qName)]);
-                            //print_names();
+                            //printf("add_queue: %s %d\n",queues_data.queue_name[get_id(qName)],get_id(qName));
                             send_queue_declare_ok(connfd, recvline, frame_length, qName);
                             break;
                         case BASIC:
@@ -349,9 +360,10 @@ int main (int argc, char **argv) {
                                     //send nothing
                                     char qName[MAX_QUEUE_SIZE];
                                     char payload[MAX_MESSAGE_SIZE];
-                                    getPublishData(connfd, recvline, frame_length, qName, payload);
+                                    get_publish_data(connfd, recvline, frame_length, qName, payload);
                                     publish(qName, payload);
-                                    print_queues_data();   
+                                    //printf("publish: %s %s\n",queues_data.queue_name[get_id(qName)],queues_data.queue_messages[get_id(qName)][0]);
+                                    //print_queues_data();   
                                     //deliver(qName);                                     
                                     //write(connfd, CHANNEL_CLOSE_OK_PKT, SZ_CHANNEL_CLOSE_OK_PKT-1);
                                     break;
@@ -369,13 +381,18 @@ int main (int argc, char **argv) {
                                     //received basic consume
                                     //send basic consume ok
                                     char qNameC[MAX_QUEUE_SIZE];
-                                    getQueueName(connfd,recvline,frame_length,qNameC);
-                                    add_consumer(qNameC, &connfd);
+                                    int fd = connfd;
+                                    get_queue_name(connfd,recvline,frame_length,qNameC);
+                                    add_consumer(qNameC, &fd);
+                                    //printf("add_consumer: %s %d %d\n",queues_data.queue_name[get_id(qNameC)],queues_data.queue_consumers[get_id(qNameC)][0], fd);
                                     send_basic_consume_ok(connfd, recvline, frame_length);
+                                    //printf("tentei deliver\n");
+                                    deliver(qNameC);
+                                    //printf("passei deliver\n");
                                     //deliver_all();
                                     break;
                                 default:
-                                    printf("Unknown basic class packet\n");
+                                    printf("    [-]unknown basic class packet\n");
                                     break;
                             }
                             break;
@@ -393,13 +410,18 @@ int main (int argc, char **argv) {
             /*                         EP1 FIM                           */
             /* ========================================================= */
         }    /* ========================================================= */
-        else
+        else{
             /**** PROCESSO PAI ****/
             /* Se for o pai, a única coisa a ser feita é fechar o socket
              * connfd (ele é o socket do cliente específico que será tratado
              * pelo processo filho)
              */
+            //deliver_all();
+            //print_queues_data();
             close(connfd);
+        }
     }
     exit(0);
 }
+
+//descobrir como e quando enviar o deliver pkt
