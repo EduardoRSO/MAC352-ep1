@@ -1,10 +1,5 @@
-#include <complex.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <unistd.h>
 #include "amqp.h"
-#include "hardcode.h"
-#include <string.h>
+
 
 //https://stackoverflow.com/questions/3022552/is-there-any-standard-htonl-like-function-for-64-bits-integers-in-c
 uint64_t htonll(uint64_t n) {
@@ -76,18 +71,18 @@ void unparse_queue_ok(char*pkt, int*sz, char* qName){
 
 void unparse_deliver(char* pkt, int* sz, char* qName){
     //do not have too much time left to this assign
-    char hardcoded2[] = "\x1f\x61\x6d\x71\x2e\x63\x74\x61\x67\x2d\x55\x6e\x73\x75\x6f\x31\x58\x6c\x68\x46\x58\x41\x6e\x45\x68\x6f\x58\x76\x58\x68\x59\x41\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00";
-    int sz_hardcoded2 = 43;
+    char hardcoded2[] = "\x1f\x61\x6d\x71\x2e\x63\x74\x61\x67\x2d\x55\x6e\x73\x75\x6f\x31\x58\x6c\x68\x46\x58\x41\x6e\x45\x68\x6f\x58\x76\x58\x68\x59\x41\x00\x00\x00\x00\x00\x00\x00\x01\x00";
+    int sz_hardcoded2 = 42;
     u_int8_t len = strlen(qName);
     memcpy(pkt+*sz,hardcoded2, sz_hardcoded2); *sz += sz_hardcoded2;
     memcpy(pkt+*sz,(char*)&(len),sizeof(len)); *sz+= sizeof(len);
     memcpy(pkt+*sz,qName, len); *sz+= len;
     memcpy(pkt+*sz, "\xce",1); *sz+=1;
-    print_hex(pkt, *sz);
-    printf("unparse_deliver\n");
+    //print_hex(pkt, *sz);
+    //printf("unparse_deliver\n");
 }
 
-void unparse_content_header(char* pkt,int* sz,int msg_length){
+void unparse_content_header(char* pkt,int* sz, u_int64_t msg_length){
     u_int8_t t = 2;
     u_int16_t ch = htons(1);
     u_int32_t l = htonl(15);
@@ -106,40 +101,42 @@ void unparse_content_header(char* pkt,int* sz,int msg_length){
     memcpy(pkt+*sz,(char*)&pf,sizeof(pf)); *sz+= sizeof(pf);
     memcpy(pkt+*sz,(char*)&d,sizeof(d)); *sz+= sizeof(d);
     memcpy(pkt+*sz,"\xce",1); *sz+=1;
-    print_hex(pkt, *sz);
-    printf("content_header\n");
+    //print_hex(pkt, *sz);
+    //printf("content_header\n");
 }
 
 void unparse_content_body(char* pkt, int* sz,char* msg){
     u_int8_t t = 3;
-    u_int16_t ch = 1;
-    u_int32_t l = strlen(msg);
-    
+    u_int16_t ch = htons(1);
+    u_int32_t l = htonl((u_int32_t)strlen(msg));
+
     memcpy(pkt+*sz,(char*)&t,sizeof(t)); *sz+= sizeof(t);
     memcpy(pkt+*sz,(char*)&ch,sizeof(ch)); *sz+= sizeof(ch);
     memcpy(pkt+*sz,(char*)&l,sizeof(l)); *sz+= sizeof(l);
-    memcpy(pkt+*sz,msg,l); *sz+= l;
+    memcpy(pkt+*sz, msg,strlen(msg)); *sz+= strlen(msg); //erro aqui X consertei era o l no lugar do strlen
     memcpy(pkt+*sz, "\xce",1); *sz+=1;
-    print_hex(pkt, *sz);
-    printf("content_body\n");
+    //print_hex(pkt, *sz);
+    //printf("content_body\n");
+    //os pacotes não estão se concatenando??? no wireshark está ok, mas eh como se não houvesse a divisa
 }
 
-void getString(char* s,char* recvline, int start){
+void get_string(char* s,char* recvline, int start, int strlen){
     int j = 0;
-    for(int i = start; (recvline[i] != 0) || (recvline[i] == 206); i++){
+    for(int i = start; j < strlen; i++){
         s[j++] = recvline[i];
     }
     s[j] = '\0';
+    //printf("    [+]get_string: %s %d\n", s, j);
 }
 
-void getQueueName(int connfd, char* recvline, uint32_t frame_length, char* qName){
+void get_queue_name(int connfd, char* recvline, uint32_t frame_length, char* qName){
     read(connfd, recvline, frame_length-3);
-    getString(qName, recvline, 3);
+    get_string(qName, recvline, 3, recvline[2]);
 }
 
-void getPublishData(int connfd, char* recvline, uint32_t frame_length, char* qName, char* payload){
+void get_publish_data(int connfd, char* recvline, uint32_t frame_length, char* qName, char* payload){
     read(connfd, recvline, frame_length-3);
-    getString(qName,recvline,4);
+    get_string(qName, recvline, 4, recvline[3]);
     read(connfd,recvline, 3); //content header type + channel
     read(connfd,recvline, 4); //content header lenght 4 hex bytes
     u_int32_t length = ntohl(*((u_int32_t*)recvline));
@@ -147,7 +144,7 @@ void getPublishData(int connfd, char* recvline, uint32_t frame_length, char* qNa
     read(connfd,recvline, 4);//content body length
     length = ntohl(*((u_int32_t*)recvline));
     read(connfd,recvline, length +1);
-    getString(payload,recvline,0);
+    get_string(payload,recvline,0, length);
     //payload[strlen(payload)-2] = 0;
     //printf("%s %d %s\n", qName, length, payload);
 }
@@ -186,7 +183,7 @@ void send_queue_declare_ok(int connfd, char* recvline, u_int32_t frame_length, c
     char pkt[MAXLINE];int sz = 0;
     unparse_frame(pkt,&sz, create_frame(1,1,frame_length+1,50,11));
     unparse_queue_ok(pkt,&sz, qName);
-    print_hex(pkt, sz);
+    //print_hex(pkt, sz);
     write(connfd, pkt, sz);
 }
 
@@ -204,12 +201,13 @@ void send_basic_consume_ok(int connfd, char* recvline, u_int32_t frame_length){
 }
 
 void send_basic_deliver(int connfd, char* qName, char* msg){
-    char pkt[MAXLINE]; int sz = 0;
-    unparse_frame(pkt,&sz,create_frame(1,1,47+strlen(qName),60,60));
+    //printf("send_basic-deliver: %d %s %s\n",connfd, qName, msg);
+    char pkt[MAXLINE]; int sz = 0; u_int32_t frame_length = 47+strlen(qName); //deliver_offset
+    unparse_frame(pkt,&sz,create_frame(METHOD, FIXED_CHANNEL, frame_length, BASIC_DELIVER, BASIC_DELIVER));
     unparse_deliver(pkt,&sz,qName);
     unparse_content_header(pkt,&sz,strlen(msg));
     unparse_content_body(pkt,&sz,msg);
-    print_hex(pkt, sz);
+    //print_hex(pkt, sz);
     write(connfd, pkt, sz);
 }
 

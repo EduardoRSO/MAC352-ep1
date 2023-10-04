@@ -3,8 +3,17 @@
 
 #include <sys/types.h>
 #include <netinet/in.h>
+#include "hardcode.h"
+#include <string.h>
+#include <complex.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <unistd.h>
+
 #include "queue.h"
+
 #define MAXLINE 4096
+#define FIXED_CHANNEL 0x1
 
 enum class_type_t{
   CONNECTION = 0xa,
@@ -90,15 +99,15 @@ void unparse_queue_ok(char*pkt, int*sz, char* qName);
 
 void unparse_deliver(char* pkt, int* sz, char* qName);
 
-void unparse_content_header(char* pkt,int* sz,int msg_length);
+void unparse_content_header(char* pkt,int* sz,u_int64_t msg_length);
 
 void unparse_content_body(char* pkt, int* sz,char* msg);
 
-void getString(char* s, char* recvline, int start);
+void get_string(char* s, char* recvline, int start, int strlen);
 
-void getQueueName(int connfd, char* recvline, uint32_t frame_length, char* qName);
+void get_queue_name(int connfd, char* recvline, uint32_t frame_length, char* qName);
 
-void getPublishData(int connfd, char* recvline, uint32_t frame_length, char* qName, char* payload);                                
+void get_publish_data(int connfd, char* recvline, uint32_t frame_length, char* qName, char* payload);                                
 
 void send_connection_start(int connfd);
 
