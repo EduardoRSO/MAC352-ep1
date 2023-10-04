@@ -2,6 +2,10 @@
 #define QUEUE_H
 
 #include <sys/types.h>
+#include <string.h>
+#include <sys/mman.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 #define MAX_QUEUE_SIZE 100
 #define MAX_QUEUE_NAME_SIZE 100
@@ -21,7 +25,7 @@
 typedef struct queue_t{
   char**  queue_name;
   char*** queue_messages;
-  int***  queue_consumers;
+  int**  queue_consumers;
 } queue;
 
 extern queue queues_data;
@@ -36,5 +40,7 @@ void publish(char* queue_name, char* msg);
 void add_consumer(char* queue_name, int* connfd);
 int consume(char* queue_name, int* connfd, char* msg);
 int get_id(char* queue_name);
+int move_consumer_to_last_position(int i);
+void remove_message(int i);
 
 #endif
