@@ -48,99 +48,6 @@
 
 #define LISTENQ 1
 
-char *e = '\0';
-/*
-void print_consumers(int i){
-    for(int j = 0; j < MAX_CONSUMER_NUMBER;j++){
-        printf("  [C]:");
-        if(queues_data.queue_consumers[i][j] != 0){
-            printf("%d, ",queues_data.queue_consumers[i][j]);
-        }
-        else{
-            printf("\n");
-            break;
-        }
-    }
-}
-
-void print_names(){
-    printf("names:\n");
-    for(int i = 0; i < MAX_QUEUE_SIZE;i++){
-        if(strcmp(queues_data.queue_name[i],e) != 0){
-            printf("%s ",queues_data.queue_name[i]);
-        }
-        else{
-            printf("\n");
-            break; 
-        }
-    }
-}
-
-void print_messages(int i){
-    for(int j = 0; j < MAX_MESSAGE_NUMBER;j++){
-        printf("  [M]:");
-        if(strcmp(queues_data.queue_messages[i][j], e) != 0){
-            printf("%s, ",queues_data.queue_messages[i][j]);
-        }
-        else{
-            printf("\n");
-            break;
-        }
-    }
-}
-void print_queues_data(){
-    printf("queues_data:\n");
-    print_consumers(0);
-    print_messages(0);
-    for(int i = 0; i < MAX_QUEUE_SIZE;i++){
-        printf("cara????");
-        printf("%d %s %d",i, queues_data.queue_name[i], strcmp(queues_data.queue_name[i],e));
-        if(strcmp(queues_data.queue_name[i],e) != 0){
-            printf("%s\n",queues_data.queue_name[i]);
-            print_consumers(i);
-            print_messages(i);
-        }
-        else{
-            printf("\n");
-            break; 
-        }
-    }
-}
-*/
-void deliver(char* qName){
-    int sch;
-    char msg[MAXLINE];
-    //printf("deliver_1: %s\n", qName);
-    if(consume(qName, &sch, msg) != -1){
-        //printf("deliver_2: %d %s %s\n",sch, qName, msg);
-        printf("    [+]deliver: %s %d %s\n", qName, sch, msg);
-        send_basic_deliver(sch, qName, msg);
-    }else{
-        printf("    [-]deliver: consume: %s %d %s\n", qName, sch, msg);
-    }
-}
-/*
-void deliver_all(){
-    //print_queues_data();
-    for(int i=0;i<MAX_QUEUE_SIZE;i++){
-        int sch;
-        char msg[MAXLINE];
-        //printf("entrei aqui\n");
-        if(queues_data.queue_name[i] && strcmp(queues_data.queue_name[i],e) != 0){
-            //printf("entrei aqui2\n");
-            while(consume(queues_data.queue_name[i], &sch, msg) != -1){
-                //printf("entrei aqui3\n");
-                send_basic_deliver(sch, queues_data.queue_name[i], msg);
-                }
-        }
-        else{
-            //printf("entrei aqui4\n");
-            break;
-        }
-    }
-}
-*/
-
 int main (int argc, char **argv) {
     /* Os sockets. Um que será o socket que vai escutar pelas conexões
      * e o outro que vai ser o socket específico de cada conexão
@@ -278,14 +185,13 @@ int main (int argc, char **argv) {
             pfd[0].events = POLLIN;
             poll(pfd,1,-1);
             int i = 0;
-            //print_queues_data();
             while(1){
                 poll(pfd,1,-1);
                 if(pfd[0].revents & POLLIN){    
-                    if(i == 0){
-                    read(connfd,recvline, 10); 
-                    write(connfd, CONNECTION_START_PKT, SZ_CONNECTION_START_PKT-1);
-                    i++;
+                   if(i == 0){ //handles protocol header
+                        read(connfd,recvline, 10); 
+                        write(connfd, CONNECTION_START_PKT, SZ_CONNECTION_START_PKT-1);
+                        i++;
                     }
                     parse_frame_type(recvline, connfd);
                     u_int32_t frame_length = parse_frame_length(recvline,connfd);
@@ -314,8 +220,6 @@ int main (int argc, char **argv) {
                                 //received connection close
                                 //send connection close ok
                                 send_connection_close_ok(connfd,recvline,frame_length);
-                                //print_queues_data();
-                                //print_names();
                                 free_structure_queues_data();
                                 printf("[conexão %d fechada]\n", getpid());
                                 exit(0);
@@ -337,7 +241,6 @@ int main (int argc, char **argv) {
                                 //received channel close
                                 //send channel close ok
                                 send_channel_close_ok(connfd, recvline, frame_length);
-                                //deliver_all();
                                 break;
                             default:
                                 printf("    [-]unknown channel class packet\n");
@@ -350,7 +253,6 @@ int main (int argc, char **argv) {
                             char qName[MAX_QUEUE_NAME_SIZE];
                             get_queue_name(connfd,recvline,frame_length,qName);
                             add_queue(qName);
-                            //printf("add_queue: %s %d\n",queues_data.queue_name[get_id(qName)],get_id(qName));
                             send_queue_declare_ok(connfd, recvline, frame_length, qName);
                             break;
                         case BASIC:
@@ -362,10 +264,6 @@ int main (int argc, char **argv) {
                                     char payload[MAX_MESSAGE_SIZE];
                                     get_publish_data(connfd, recvline, frame_length, qName, payload);
                                     publish(qName, payload);
-                                    //printf("publish: %s %s\n",queues_data.queue_name[get_id(qName)],queues_data.queue_messages[get_id(qName)][0]);
-                                    //print_queues_data();   
-                                    //deliver(qName);                                     
-                                    //write(connfd, CHANNEL_CLOSE_OK_PKT, SZ_CHANNEL_CLOSE_OK_PKT-1);
                                     break;
                                 case BASIC_ACK:
                                     //received basic ack
@@ -384,12 +282,8 @@ int main (int argc, char **argv) {
                                     int fd = connfd;
                                     get_queue_name(connfd,recvline,frame_length,qNameC);
                                     add_consumer(qNameC, &fd);
-                                    //printf("add_consumer: %s %d %d\n",queues_data.queue_name[get_id(qNameC)],queues_data.queue_consumers[get_id(qNameC)][0], fd);
                                     send_basic_consume_ok(connfd, recvline, frame_length);
-                                    //printf("tentei deliver\n");
                                     deliver(qNameC);
-                                    //printf("passei deliver\n");
-                                    //deliver_all();
                                     break;
                                 default:
                                     printf("    [-]unknown basic class packet\n");
@@ -399,6 +293,7 @@ int main (int argc, char **argv) {
                         default:
                             //received protocol header
                             //send connection start
+                            read(connfd,recvline, 10); 
                             send_connection_start(connfd);
                             break;       
                     }

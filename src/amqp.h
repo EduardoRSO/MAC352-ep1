@@ -107,7 +107,11 @@ void get_string(char* s, char* recvline, int start, int strlen);
 
 void get_queue_name(int connfd, char* recvline, uint32_t frame_length, char* qName);
 
-void get_publish_data(int connfd, char* recvline, uint32_t frame_length, char* qName, char* payload);                                
+void get_publish_data(int connfd, char* recvline, uint32_t frame_length, char* qName, char* payload);   
+
+void deliver(char* qName);
+
+void deliver_all();
 
 void send_connection_start(int connfd);
 

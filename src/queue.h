@@ -42,5 +42,8 @@ int consume(char* queue_name, int* connfd, char* msg);
 int get_id(char* queue_name);
 int move_consumer_to_last_position(int i);
 void remove_message(int i);
-
+void print_consumers(int i);
+void print_names();
+void print_messages(int i);
+void print_queues_data();
 #endif

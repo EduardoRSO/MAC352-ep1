@@ -152,3 +152,59 @@ int get_id(char* queue_name){
     return -1;
 }
 
+void print_consumers(int i){
+    for(int j = 0; j < MAX_CONSUMER_NUMBER;j++){
+        printf("  [C]:");
+        if(queues_data.queue_consumers[i][j] != 0){
+            printf("%d, ",queues_data.queue_consumers[i][j]);
+        }
+        else{
+            printf("\n");
+            break;
+        }
+    }
+}
+
+void print_names(){
+    printf("names:\n");
+    for(int i = 0; i < MAX_QUEUE_SIZE;i++){
+        if(strcmp(queues_data.queue_name[i],empty) != 0){
+            printf("%s ",queues_data.queue_name[i]);
+        }
+        else{
+            printf("\n");
+            break; 
+        }
+    }
+}
+
+void print_messages(int i){
+    for(int j = 0; j < MAX_MESSAGE_NUMBER;j++){
+        printf("  [M]:");
+        if(strcmp(queues_data.queue_messages[i][j], empty) != 0){
+            printf("%s, ",queues_data.queue_messages[i][j]);
+        }
+        else{
+            printf("\n");
+            break;
+        }
+    }
+}
+void print_queues_data(){
+    printf("queues_data:\n");
+    print_consumers(0);
+    print_messages(0);
+    for(int i = 0; i < MAX_QUEUE_SIZE;i++){
+        //printf("cara????");
+        //printf("%d %s %d",i, queues_data.queue_name[i], strcmp(queues_data.queue_name[i],empty));
+        if(strcmp(queues_data.queue_name[i],empty) != 0){
+            printf("%s\n",queues_data.queue_name[i]);
+            print_consumers(i);
+            print_messages(i);
+        }
+        else{
+            printf("\n");
+            break; 
+        }
+    }
+}

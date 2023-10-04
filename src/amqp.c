@@ -148,6 +148,38 @@ void get_publish_data(int connfd, char* recvline, uint32_t frame_length, char* q
     //payload[strlen(payload)-2] = 0;
     //printf("%s %d %s\n", qName, length, payload);
 }
+
+void deliver(char* qName){
+    int sch;
+    char msg[MAXLINE];
+    if(consume(qName, &sch, msg) != -1){
+        printf("    [+]deliver: %s %d %s\n", qName, sch, msg);
+        send_basic_deliver(sch, qName, msg);
+    }else{
+        printf("    [-]deliver: consume: %s %d %s\n", qName, sch, msg);
+    }
+}
+
+void deliver_all(){
+    //print_queues_data();
+    for(int i=0;i<MAX_QUEUE_SIZE;i++){
+        int sch;
+        char msg[MAXLINE];
+        char empty[] = "\0";
+        //printf("entrei aqui\n");
+        if(queues_data.queue_name[i] && strcmp(queues_data.queue_name[i],empty) != 0){
+            //printf("entrei aqui2\n");
+            while(consume(queues_data.queue_name[i], &sch, msg) != -1){
+                //printf("entrei aqui3\n");
+                send_basic_deliver(sch, queues_data.queue_name[i], msg);
+                }
+        }
+        else{
+            //printf("entrei aqui4\n");
+            break;
+        }
+    }
+}
                                     
 
 void send_connection_start(int connfd){
