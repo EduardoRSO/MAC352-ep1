@@ -179,7 +179,7 @@ int main (int argc, char **argv) {
             /* TODO: É esta parte do código que terá que ser modificada
              * para que este servidor consiga interpretar comandos AMQP
              */
-            printf("[conexão %d aberta]\n", getpid());
+            printf("[conexão %d aberta] connfd = %d\n", getpid(), connfd);
             struct pollfd pfd[1];
             pfd[0].fd = connfd;
             pfd[0].events = POLLIN;
@@ -220,8 +220,9 @@ int main (int argc, char **argv) {
                                 //received connection close
                                 //send connection close ok
                                 send_connection_close_ok(connfd,recvline,frame_length);
-                                free_structure_queues_data();
                                 printf("[conexão %d fechada]\n", getpid());
+                                print_queues_data();
+                                free_structure_queues_data();
                                 exit(0);
                                 break;
                             default:
@@ -284,6 +285,7 @@ int main (int argc, char **argv) {
                                     add_consumer(qNameC, &fd);
                                     send_basic_consume_ok(connfd, recvline, frame_length);
                                     deliver(qNameC);
+                                    print_queues_data();
                                     break;
                                 default:
                                     printf("    [-]unknown basic class packet\n");
