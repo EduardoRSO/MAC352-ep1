@@ -4,6 +4,7 @@
 
 - **docs**: Has the problem description.
 - **src**: Has the problem source code.
+- **scripts**: Has the scripts for tests.
 
 ## Running
 
