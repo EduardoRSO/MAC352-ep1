@@ -89,6 +89,7 @@ void add_consumer(char* queue_name, int* connfd){
         if(queues_data.queue_consumers[i][j] == 0){
             memcpy(&queues_data.queue_consumers[i][j],connfd, sizeof(int));
             printf("    [+]add_consumer: %s %d %d\n",queue_name, *connfd, j);
+            print_consumers(i);
             return;
         }
     }    
@@ -133,7 +134,10 @@ int consume(char* queue_name, int* connfd, char* msg){
         printf("    [-]consume: get_id(%s): queue not found\n", queue_name);
         return -1;
     }
-    if(queues_data.queue_consumers[i][0] == 0 || strcmp(queues_data.queue_messages[i][0], empty)==0) return -1;
+    if(queues_data.queue_consumers[i][0] == 0 || strcmp(queues_data.queue_messages[i][0], empty)==0){
+        printf("    [-]consume: %s %d %s\n", queue_name, queues_data.queue_consumers[i][0], queues_data.queue_messages[i][0]);
+        return -1;
+    }
     memcpy(connfd, &queues_data.queue_consumers[i][0],sizeof(int));
     memcpy(msg, queues_data.queue_messages[i][0], MAX_MESSAGE_SIZE);
     printf("    [+]consume: %s %d %d %s\n",queue_name, i, *connfd, msg);
@@ -153,8 +157,8 @@ int get_id(char* queue_name){
 }
 
 void print_consumers(int i){
+    printf("  [C]:");
     for(int j = 0; j < MAX_CONSUMER_NUMBER;j++){
-        printf("  [C]:");
         if(queues_data.queue_consumers[i][j] != 0){
             printf("%d, ",queues_data.queue_consumers[i][j]);
         }
@@ -166,7 +170,7 @@ void print_consumers(int i){
 }
 
 void print_names(){
-    printf("names:\n");
+    printf("    [N]:\n");
     for(int i = 0; i < MAX_QUEUE_SIZE;i++){
         if(strcmp(queues_data.queue_name[i],empty) != 0){
             printf("%s ",queues_data.queue_name[i]);
@@ -179,8 +183,8 @@ void print_names(){
 }
 
 void print_messages(int i){
+    printf("  [M]:");
     for(int j = 0; j < MAX_MESSAGE_NUMBER;j++){
-        printf("  [M]:");
         if(strcmp(queues_data.queue_messages[i][j], empty) != 0){
             printf("%s, ",queues_data.queue_messages[i][j]);
         }
@@ -191,12 +195,8 @@ void print_messages(int i){
     }
 }
 void print_queues_data(){
-    printf("queues_data:\n");
-    print_consumers(0);
-    print_messages(0);
+    printf("<MEMORY>:\n");
     for(int i = 0; i < MAX_QUEUE_SIZE;i++){
-        //printf("cara????");
-        //printf("%d %s %d",i, queues_data.queue_name[i], strcmp(queues_data.queue_name[i],empty));
         if(strcmp(queues_data.queue_name[i],empty) != 0){
             printf("%s\n",queues_data.queue_name[i]);
             print_consumers(i);
@@ -207,4 +207,5 @@ void print_queues_data(){
             break; 
         }
     }
+    printf("</MEMORY>:\n");
 }
