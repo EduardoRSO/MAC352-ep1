@@ -313,9 +313,8 @@ int main (int argc, char **argv) {
              * connfd (ele é o socket do cliente específico que será tratado
              * pelo processo filho)
              */
-            //deliver_all();
-            //print_queues_data();
-            close(connfd);
+
+            //close(connfd); ---------------> trying to avoid file descriptors being replicated after fork
         }
     }
     exit(0);
