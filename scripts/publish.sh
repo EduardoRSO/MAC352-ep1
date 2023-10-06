@@ -1,7 +1,7 @@
 #!/bin/bash
-for i in {1..10}
+for i in $(seq 1 1 $1)
 do
-  for j in {1..3}
+  for j in $(seq 1 1 $2)
   do  
     amqp-publish -r q$i -b "m$j" &
   done

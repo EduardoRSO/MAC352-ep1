@@ -1,8 +1,8 @@
 #!/bin/bash
-for i in {1..10}
+for i in $(seq 1 1 $1)
 do
-  for j in {1..2}
+  for j in $(seq 1 1 $2)
   do
-    gnome-terminal --tab --title="$i_$j" -- amqp-consume -q q$i cat &
+    gnome-terminal --tab --title="$i$j" -- amqp-consume -q q$i cat &
   done
 done
