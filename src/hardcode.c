@@ -66,7 +66,6 @@ const char BASIC_CONSUME_OK_PKT[] =
 "\x5f\x77\x56\x6b\x43\x42\x44\x49\x58\x74\x67\xce";
 
 const size_t SZ_BASIC_CONSUME_OK_PKT = 45;
-//there is another type of consume pkt with way more data...
 
 const char BASIC_DELIVER_PKT[] = 
 "\x00\x00\x03\x04\x00\x06\x00\x00\x00\x00\x00\x00\x6d\x71\x08\x00" 

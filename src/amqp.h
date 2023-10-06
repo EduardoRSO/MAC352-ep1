@@ -66,22 +66,8 @@ typedef struct frame_t{
   u_int16_t method;
 } frame;
 
-/*
-• Declaração da fila;
-• Conexão de vários clientes simultaneamente (cada cliente simultâneo pode publicar ou requisitar
-mensagens da mesma fila ou de filas distintas);
-• Inscrição de cliente em uma fila e consequente envio das mensagens desta fila para o cliente res-
-peitando o esquema de Round Robin caso mais de um cliente esteja conectado na mesma fila;
-• Publicação de mensagem em uma fila;
-• Desconexão de cliente.*/
 
-/*
- * Structure any packet received. 
- */
-
-//queue_declare_ok_pkt create_queue_declare_ok_frame(u_int8_t t, u_int16_t ch, u_int32_t l, u_int16_t cl, u_int16_t m, u_int8_t d, void* args, u_int32_t mc, u_int32_t cc);
-
-//void print_hex(char* recvline, size_t size);
+void print_hex(char* recvline, size_t size);
 
 u_int8_t parse_frame_type(char* recvline, int connfd);
 

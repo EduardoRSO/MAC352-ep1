@@ -79,7 +79,6 @@ void publish(char* queue_name, char* msg){
 }
 
 void add_consumer(char* queue_name, int* connfd){
-    //add_queue(queue_name); //change it later
     int i;
     if((i = get_id(queue_name)) == -1){
         printf("    [-]add_consumer: get_id(%s): queue not found\n", queue_name);
@@ -94,11 +93,6 @@ void add_consumer(char* queue_name, int* connfd){
         }
     }    
 }
-/*
-*
-* o consume não está excluindoa mensagem. Rever depois
-*
-*/
 
 int move_consumer_to_last_position(int i){
     int swap = queues_data.queue_consumers[i][0];
@@ -114,14 +108,11 @@ int move_consumer_to_last_position(int i){
 }
 
 void remove_message(int i){
-    //printf("%s\n",queues_data.queue_messages[i][0]);
     memcpy(queues_data.queue_messages[i][0], "\0", sizeof(char));
-    //printf("%s\n",queues_data.queue_messages[i][0]);
     for(int j = 0; j < MAX_MESSAGE_NUMBER; j++){
         if(strcmp(queues_data.queue_messages[i][j+1],empty) != 0){
             memcpy(queues_data.queue_messages[i][j],queues_data.queue_messages[i][j+1], strlen(queues_data.queue_messages[i][j+1]));
             memcpy(queues_data.queue_messages[i][j+1], "\0", sizeof(char));
-            //printf("%s\n",queues_data.queue_messages[i][j]);
         }else{
             break;
         }
@@ -149,7 +140,6 @@ int consume(char* queue_name, int* connfd, char* msg){
 int get_id(char* queue_name){
     for(int i = 0; i < MAX_QUEUE_SIZE;i++){
         if(strcmp(queues_data.queue_name[i], queue_name) == 0){
-            //printf("    [+]get_id(%s): id = %d\n",queue_name, i);
             return i;
         }
     }
