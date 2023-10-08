@@ -265,6 +265,7 @@ int main (int argc, char **argv) {
                                     char payload[MAX_MESSAGE_SIZE];
                                     get_publish_data(connfd, recvline, frame_length, qName, payload);
                                     publish(qName, payload);
+                                    deliver(qName);
                                     break;
                                 case BASIC_ACK:
                                     //received basic ack
