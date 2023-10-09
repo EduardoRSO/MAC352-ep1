@@ -8,10 +8,15 @@
 
 ## Running
 
-- **still working**
+- Just run ./main 5672 and use amqp-tools commands, such as:
+    amqp-declare-queue -q "q1"
+    amqp-publish -r q1 -b OlaQ1
+    amqp-consume -q q1 cat
 
 ## Tests
 
-- **still working**
-
+- To run the tests on /scripts you need to create a docker container as above:
+    docker build -t src .
+    sudo docker run --name ep1 -p 5672:5672 -p 15672:15672 src
+    ./run_all_tests CONSUMER_NUMBER
 
