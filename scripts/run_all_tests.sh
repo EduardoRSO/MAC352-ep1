@@ -10,7 +10,7 @@ sleep 5;
 ./consume.sh $1 1 &
 echo "Started get_cpu_network_from_docker"
 ./get_cpu_network_from_docker.sh $SAMPLE_SIZE $1
-pkill -TERM -g $$
 docker kill ep1;
 echo "Killed docker container";
 sleep 5;
+pkill -TERM -g $$
